@@ -1,10 +1,6 @@
 *.DS_Store
-build
 node_modules/*
 npm-debug.log
 *.log
 tmp
-.sass-cache/*
-server/dev_client/*
-server/production_client/*
-test/sandbox
+example/main.js

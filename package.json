@@ -19,7 +19,7 @@
   "browserify-shim": {},
   "dependencies": {    
     "underscore": "~1.5.1",
-    "react": "*",
+    "react": "*"
   },
   "devDependencies": {
     "backbone": "*",
