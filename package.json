@@ -12,12 +12,12 @@
         {
           "es6": true
         }
-      ],
-      "browserify-shim"
+      ]
     ]
   },
   "browserify-shim": {},
-  "dependencies": {    
+  "dependencies": {
+    "d3": "*",
     "underscore": "~1.5.1",
     "react": "*"
   },

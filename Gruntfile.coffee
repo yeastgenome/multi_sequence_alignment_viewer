@@ -15,7 +15,7 @@ module.exports = (grunt) ->
     browserify:
       development:
         dest: 'example/main.js'
-        src: 'lib/sequence_aligner.jsx'
+        src: 'example_src/main.jsx'
         options:
           debug: true
 
@@ -27,7 +27,7 @@ module.exports = (grunt) ->
         
     watch:
       dev:
-        files: ['lib/**/*.jsx'] 
+        files: ['lib/**/*.jsx', 'example_src/**/*.jsx'] 
         tasks: 'browserify' 
         options:
           livereload: true
@@ -40,6 +40,6 @@ module.exports = (grunt) ->
   grunt.registerTask 'default', [
     #'clean:development'
     'connect'
-    #'compileClient'
+    'browserify'
     'watch'
   ]
