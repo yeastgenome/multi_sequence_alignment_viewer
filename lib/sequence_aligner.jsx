@@ -1,6 +1,13 @@
+var d3 = require("d3");
 var React = require("react");
+var _ = require("underscore");
 
 var MultiScaleAxis = require("./multi_scale_axis.jsx");
+
+// TEMP vars
+var PX_PER_CHAR = 12;
+var SUMMARIZED_SIZE = 50;
+var TICK_HEIGHT = 6;
 
 module.exports = React.createClass({
 
@@ -10,11 +17,59 @@ module.exports = React.createClass({
 	},
 
 	render: function () {
+		var visibleSequenceNodes = this._getVisibleSequenceNodes();
 		return (<div>
-			<MultiScaleAxis segments={this.props.segments} />
-			<canvas ref="canvas" style={{ width: 400, height: 400 }}></canvas>
+			<MultiScaleAxis segments={this.props.segments} scale={this._getScale()} />
+			<svg ref="svg" style={{ width: "100%", height: 600 }}>
+			</svg>
 		</div>);
 	},
+
+	// returns a d3 scale which has multiple linear scale segments corresponding to segments prop
+	_getScale: function () {
+		// sort segments by domain
+		var _segs = _.sortBy(this.props.segments, s => {
+			return s.domain[0];
+		});
+		// make domain from "ticky" points in segment
+		var _domain = _.reduce(this.props.segments, (memo, s) => {
+			memo.push(s.domain[1]);
+			return memo;
+		}, [0]);
+		// make range
+		var _range = _.reduce(this.props.segments, (memo, s) => {
+			var _last = memo[memo.length - 1];
+			// add fixed px for invible, else calc based on sequence
+			var _delta = !s.visible ? SUMMARIZED_SIZE : ((s.domain[1] - s.domain[0]) * PX_PER_CHAR);
+			memo.push(_last += _delta);
+			return memo;
+		}, [0]);
+
+		return d3.scale.linear()
+			.domain(_domain)
+			.range(_range);
+	},
+
+	_getVisibleSequenceNodes: function () {
+		var _seqs = _.reduce(this.props.sequences, (memo, seq) => {
+			var _seqSegs = _.map(this.props.segments, seg => {
+				if (seg.visible) {
+					return {
+						sequence: seq.sequence.slice(seg.domain[0], seg.domain[1]),
+						start: seg.domain[0],
+						name: seq.name
+					};
+				} else {
+					return null;
+				}
+			});
+			
+			return memo.concat(_.filter(_seqSegs, s => { return s; }));
+		}, []);
+
+		// TEMP
+		return null;
+	}
 
 	// componentDidMount: function () {
 	// 	var ctx = this.refs.canvas.getDOMNode().getContext("2d");
