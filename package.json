@@ -1,9 +1,9 @@
 {
-  "name": "SequenceTest",
+  "name": "MultiSequenceAlignmentViewer",
   "version": "0.0.1",
   "private": true,
   "scripts": {
-    "start": "node ./bin/www"
+    "start": "grunt"
   },
   "browserify": {
     "transform": [
