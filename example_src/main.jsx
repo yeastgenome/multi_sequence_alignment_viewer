@@ -1,3 +1,4 @@
+"use strict";
 var React = require("react");
 var SequenceAligner = require("../lib/sequence_aligner.jsx");
 
@@ -6,7 +7,7 @@ var exampleData = {
 	sequences: [
 		{
 			name: "S288C",
-			sequence: "ACTGGCCTTGGG***"
+			sequence: "ACTGGCCTTGGG---"
 		},
 		{
 			name: "CEN.PK",

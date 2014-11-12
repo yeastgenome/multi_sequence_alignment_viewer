@@ -1,3 +1,4 @@
+"use strict";
 var d3 = require("d3");
 var React = require("react");
 var _ = require("underscore");
@@ -19,14 +20,15 @@ module.exports = React.createClass({
 	render: function () {
 		var visibleSequenceNodes = this._getVisibleSequenceNodes();
 		return (<div>
-			<MultiScaleAxis segments={this.props.segments} scale={this._getScale()} />
+			<MultiScaleAxis segments={this.props.segments} scale={this._getXScale()} />
 			<svg ref="svg" style={{ width: "100%", height: 600 }}>
+				{visibleSequenceNodes}
 			</svg>
 		</div>);
 	},
 
 	// returns a d3 scale which has multiple linear scale segments corresponding to segments prop
-	_getScale: function () {
+	_getXScale: function () {
 		// sort segments by domain
 		var _segs = _.sortBy(this.props.segments, s => {
 			return s.domain[0];
@@ -67,8 +69,21 @@ module.exports = React.createClass({
 			return memo.concat(_.filter(_seqSegs, s => { return s; }));
 		}, []);
 
-		// TEMP
-		return null;
+		var xScale = this._getXScale();
+		var yScale = this._getYScale();
+
+		return _.map(_seqs, (seq, i) => {
+			var _transform = `translate(${xScale(seq.start)}, ${yScale(seq.name)})`;
+			return <text key={"variantSeqNode" + i} transform={_transform} fontFamily="Courier">{seq.sequence}</text>;
+		});
+	},
+
+	_getYScale: function () {
+		var height = this.props.sequences.length * PX_PER_CHAR;
+		var names = _.map(this.props.sequence, s => { return s.name; });
+		return d3.scale.ordinal()
+			.domain(names)
+			.range([PX_PER_CHAR, height + PX_PER_CHAR]);
 	}
 
 	// componentDidMount: function () {
