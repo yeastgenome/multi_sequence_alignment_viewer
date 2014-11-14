@@ -7,7 +7,7 @@ var MultiScaleAxis = require("./multi_scale_axis.jsx");
 
 // TEMP vars
 var PX_PER_CHAR = 12;
-var SUMMARIZED_SIZE = 50;
+var SUMMARIZED_SIZE = 300;
 var TICK_HEIGHT = 6;
 
 module.exports = React.createClass({
@@ -43,30 +43,36 @@ module.exports = React.createClass({
 		});
 	},
 
-	_getVisibleSequenceNodes: function () {
-		var _seqs = _.reduce(this.props.sequences, (memo, seq) => {
-			var _seqSegs = _.map(this.props.segments, seg => {
-				if (seg.visible) {
-					return {
-						sequence: seq.sequence.slice(seg.domain[0], seg.domain[1]),
-						start: seg.domain[0],
-						name: seq.name
-					};
-				} else {
-					return null;
-				}
-			});
-			
-			return memo.concat(_.filter(_seqSegs, s => { return s; }));
-		}, []);
+	_getSummarizedSegmentNode: function (startCoordinate, endCoordinate, key) {
+		var xScale = this._getXScale();
+		return (<g className="summarized-segment" key={key}>
+			<line x1={xScale(startCoordinate)} x2={xScale(endCoordinate)} y1="0" y2="0" stroke="#efefef" />
+			<line x1={xScale(startCoordinate)} x2={xScale(endCoordinate)} y1="15" y2="15" stroke="#efefef" />
+		</g>);
+	},
 
+	_getVisibleSequenceNodes: function () {
 		var xScale = this._getXScale();
 		var yScale = this._getYScale();
 
-		return _.map(_seqs, (seq, i) => {
-			var _transform = `translate(${xScale(seq.start)}, ${yScale(seq.name)})`;
-			return <text key={"variantSeqNode" + i} transform={_transform} fontFamily="Courier">{seq.sequence}</text>;
-		});
+		return _.reduce(this.props.sequences, (memo, seq, j) => {
+			var _seqSegs = _.map(this.props.segments, (seg, k) => {
+				if (seg.visible) {
+					var _seqText = seq.sequence.slice(seg.domain[0], seg.domain[1])
+					var _transform = `translate(${xScale(seg.domain[0])}, ${yScale(seq.name)})`;
+					return <text key={"variantSeqNode" + j + k} transform={_transform} fontFamily="Courier">{_seqText}</text>;
+				} else {
+					return this._getSummarizedSegmentNode(seg.domain[0], seg.domain[1], "summarizedSequence" + j + k);
+				}
+			});
+			return memo.concat(_seqSegs);
+		}, []);
+
+		// make array of nodes for visible segments
+
+		// make array of nodes for summarized segments
+
+		// return the combind arrays
 	},
 
 	// returns a d3 scale which has multiple linear scale segments corresponding to segments prop
