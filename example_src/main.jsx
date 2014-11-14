@@ -1,6 +1,7 @@
 "use strict";
 var React = require("react");
 var SequenceAligner = require("../lib/sequence_aligner.jsx");
+var VariantHeatmap = require("../lib/variant_heatmap.jsx");
 
 // play with some data
 var exampleData = {
@@ -34,4 +35,7 @@ var exampleData = {
 	]
 };
 
-React.render(<SequenceAligner segments={exampleData.segments} sequences={exampleData.sequences}/>, document.getElementById("target"));
+var heatpmapData = [];
+
+React.render(<VariantHeatmap data={heatpmapData} />, document.getElementById("target"));
+// React.render(<SequenceAligner segments={exampleData.segments} sequences={exampleData.sequences}/>, document.getElementById("target"));
