@@ -14,13 +14,14 @@ module.exports = React.createClass({
 
 	getInitialState: function () {
 		return {
-			DOMWidth: 400
+			DOMWidth: 600,
+			DOMHeight: 400
 		};
 	},
 
 	render: function () {
 		return (<div className="variant-heatmap" style={{ height: "100%" }}>
-			<canvas ref="canvas" width={this.state.DOMWidth} height={this.state.DOMWidth} />
+			<canvas ref="canvas" width={this.state.DOMWidth} height={this.state.DOMHeight} />
 		</div>);
 	},
 
@@ -33,7 +34,11 @@ module.exports = React.createClass({
 	},
 
 	_calculateWidth: function () {
-		this.setState({ DOMWidth: this.getDOMNode().getBoundingClientRect().width });
+		var rect = this.getDOMNode().getBoundingClientRect();
+		this.setState({
+			DOMWidth: rect.width,
+			DOMHeight: rect.height
+		});
 	},
 
 	_getXScale: function () {
