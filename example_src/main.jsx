@@ -35,7 +35,21 @@ var exampleData = {
 	]
 };
 
+// FAKE DATA
 var heatpmapData = [];
+var _numGenes = 6400;
+var _numCols = 11;
+
+for (var j = _numGenes; j >= 0; j--) {
+	var _variantData = [];
+	for (var k = _numCols; k >= 0; k--) {
+		_variantData.push(Math.random());
+	}
+	heatpmapData.push({
+		name: "Gene" + Math.round(Math.random() * 100),
+		variationData: _variantData
+	});
+}
 
 React.render(<VariantHeatmap data={heatpmapData} />, document.getElementById("target"));
 // React.render(<SequenceAligner segments={exampleData.segments} sequences={exampleData.sequences}/>, document.getElementById("target"));
