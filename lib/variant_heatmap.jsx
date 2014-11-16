@@ -4,6 +4,7 @@ var React = require("react");
 var _ = require("underscore");
 
 var NODE_SIZE = 15;
+var CANVAS_SIZE = 16000;
 var SCROLL_ZONE_SIZE = 80000;
 
 module.exports = React.createClass({
@@ -15,15 +16,15 @@ module.exports = React.createClass({
 		return {
 			DOMWidth: 400,
 			DOMHeight: 400,
-			scrollY: 0
+			canvasScrollY: 0
 		};
 	},
 
 	render: function () {
 		return (<div className="variant-heatmap" style={{ position: "relative" }}>
-			<canvas ref="canvas" width={this.state.DOMWidth} height={this.state.DOMHeight} style={{ position: "absolute", top: 0 }}/>
+			<canvas ref="canvas" width={this.state.DOMWidth} height={CANVAS_SIZE} style={{ position: "absolute", top: this.state.canvasScrollY - CANVAS_SIZE / 2 }}/>
 			<div ref="scroller" className="scroll-mask-container" style={{ height: "100%", overflow: "scroll" }} >
-				<div className="scroll-mask-scroller" style={{ height: 8000, overflow: "scroll" }}></div>
+				<div className="scroll-mask-scroller" style={{ height: SCROLL_ZONE_SIZE, overflow: "scroll" }}></div>
 			</div>
 		</div>);
 	},
@@ -36,7 +37,15 @@ module.exports = React.createClass({
 	},
 
 	onScroll: function () {
-		this.setState({ scrollY: window.scrollY });
+		this._checkScroll();
+	},
+
+	// check to see if the scroll y needs to be redrawn
+	_checkScroll: function () {
+		var scrollDelta = Math.abs(window.scrollY - this.state.canvasScrollY)
+		if (scrollDelta > CANVAS_SIZE / 10) {
+			this.setState({ canvasScrollY: window.scrollY });
+		}
 	},
 
 	componentDidUpdate: function () {
@@ -59,7 +68,6 @@ module.exports = React.createClass({
 	},
 
 	_renderCanvas: function () {
-		console.log("updating canvas") // TEMP
 		// get canvas context and clear
 		var ctx = this.refs.canvas.getDOMNode().getContext("2d");
 		ctx.clearRect(0, 0, this.state.DOMWidth, this.state.DOMHeight);
