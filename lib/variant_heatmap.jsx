@@ -5,6 +5,7 @@ var _ = require("underscore");
 
 var NODE_SIZE = 15;
 var CANVAS_SIZE = 8000;
+var LABEL_WIDTH = 100;
 
 module.exports = React.createClass({
 	propTypes: {
@@ -22,21 +23,37 @@ module.exports = React.createClass({
 	render: function () {
 		var _scrollZoneSize = this.props.data.length * NODE_SIZE;
 		var _canvasY = this._getCanvasY();
-		return (<div className="variant-heatmap" style={{ position: "relative" }}>
+
+		var overlayNode = this._getOverlayNode();
+		return (<div className="variant-heatmap" style={{ position: "relative", height: _scrollZoneSize }}>
 			<canvas ref="canvas" width={this.state.DOMWidth} height={CANVAS_SIZE} style={{ position: "absolute", top: _canvasY }}/>
-			<div ref="scroller" className="scroll-mask-container" style={{ height: "100%", overflow: "scroll" }} >
-				<div className="scroll-mask-scroller" style={{ height: _scrollZoneSize, overflow: "scroll" }}></div>
-			</div>
+			{overlayNode}
 		</div>);
 	},
 
 	componentDidMount: function () {
 		this._calculateWidth();
-		window.onscroll = _.throttle(this.onScroll, 250);
+		window.onscroll = _.throttle(this.onScroll, 100);
 	},
 
 	onScroll: function () {
 		this._checkScroll();
+	},
+
+	_getOverlayNode: function () {
+		var chunkedData = this._getChunkedData();
+		var rectNodes = _.map(chunkedData, (d, i) => {
+			var _transform = `translate(0, ${i * NODE_SIZE})`;
+			return (<g key={"heatmapOverlay" + i} transform={_transform}>
+				<text dy={13} fontSize={14}>{d.name}</text>
+				<rect width={this.state.DOMWidth} height={NODE_SIZE} x={0} y={0} opacity={0} stroke="none" />
+			</g>);
+		});
+
+		var _canvasY = this._getCanvasY();
+		return (<svg ref="svg" style={{ position: "absolute", top: _canvasY, width: this.state.DOMWidth, height: CANVAS_SIZE }}>
+			{rectNodes}
+		</svg>);
 	},
 
 	// check to see if the scroll y needs to be redrawn
@@ -57,6 +74,13 @@ module.exports = React.createClass({
 			DOMWidth: _clientRect.width,
 			DOMHeight: _clientRect.height
 		});
+	},
+
+	_getChunkedData: function () {
+		var _canvasY = this._getCanvasY();
+		var _nodesPerCanvas = Math.round(CANVAS_SIZE / NODE_SIZE)
+		var _dataStartIndex = Math.round(this._getYScale().invert(_canvasY));
+		return this.props.data.slice(_dataStartIndex, _dataStartIndex + _nodesPerCanvas);
 	},
 
 	_getXScale: function () {
@@ -88,16 +112,13 @@ module.exports = React.createClass({
 			.range(["blue", "white"]);
 
 		// get data that fits into canvas
-		var _canvasY = this._getCanvasY();
-		var _nodesPerCanvas = Math.round(CANVAS_SIZE / NODE_SIZE)
-		var _dataStartIndex = Math.round(this._getYScale().invert(_canvasY));
-		var chunkOfData = this.props.data.slice(_dataStartIndex, _dataStartIndex + _nodesPerCanvas);
+		var chunkOfData = this._getChunkedData();
 
 		chunkOfData.forEach( (d, i) => {
 			d.variationData.forEach( (_d, _i) => {
 				// get color and draw rect
 				ctx.fillStyle = colorScale(_d);
-				ctx.fillRect(_i * NODE_SIZE, i * NODE_SIZE, NODE_SIZE, NODE_SIZE);
+				ctx.fillRect(_i * NODE_SIZE + LABEL_WIDTH, i * NODE_SIZE, NODE_SIZE, NODE_SIZE);
 			});
 		});
 	}

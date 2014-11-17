@@ -40,13 +40,13 @@ var heatpmapData = [];
 var _numGenes = 6400;
 var _numCols = 11;
 
-for (var j = _numGenes; j >= 0; j--) {
+for (var j = 0; j <= _numGenes; j++) {
 	var _variantData = [];
 	for (var k = _numCols; k >= 0; k--) {
 		_variantData.push(Math.random());
 	}
 	heatpmapData.push({
-		name: "Gene" + Math.round(Math.random() * 100),
+		name: "Gene" + j,
 		variationData: _variantData
 	});
 }
