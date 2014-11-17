@@ -4,8 +4,7 @@ var React = require("react");
 var _ = require("underscore");
 
 var NODE_SIZE = 15;
-var CANVAS_SIZE = 16000;
-var SCROLL_ZONE_SIZE = 80000;
+var CANVAS_SIZE = 8000;
 
 module.exports = React.createClass({
 	propTypes: {
@@ -21,19 +20,19 @@ module.exports = React.createClass({
 	},
 
 	render: function () {
+		var _scrollZoneSize = this.props.data.length * NODE_SIZE;
+		var _canvasY = this._getCanvasY();
 		return (<div className="variant-heatmap" style={{ position: "relative" }}>
-			<canvas ref="canvas" width={this.state.DOMWidth} height={CANVAS_SIZE} style={{ position: "absolute", top: this.state.canvasScrollY - CANVAS_SIZE / 2 }}/>
+			<canvas ref="canvas" width={this.state.DOMWidth} height={CANVAS_SIZE} style={{ position: "absolute", top: _canvasY }}/>
 			<div ref="scroller" className="scroll-mask-container" style={{ height: "100%", overflow: "scroll" }} >
-				<div className="scroll-mask-scroller" style={{ height: SCROLL_ZONE_SIZE, overflow: "scroll" }}></div>
+				<div className="scroll-mask-scroller" style={{ height: _scrollZoneSize, overflow: "scroll" }}></div>
 			</div>
 		</div>);
 	},
 
 	componentDidMount: function () {
 		this._calculateWidth();
-
 		window.onscroll = _.throttle(this.onScroll, 250);
-			
 	},
 
 	onScroll: function () {
@@ -43,7 +42,7 @@ module.exports = React.createClass({
 	// check to see if the scroll y needs to be redrawn
 	_checkScroll: function () {
 		var scrollDelta = Math.abs(window.scrollY - this.state.canvasScrollY)
-		if (scrollDelta > CANVAS_SIZE / 10) {
+		if (scrollDelta > CANVAS_SIZE / 4) {
 			this.setState({ canvasScrollY: window.scrollY });
 		}
 	},
@@ -67,6 +66,17 @@ module.exports = React.createClass({
 			.range([0, this.state.DOMWidth]);
 	},
 
+	_getYScale: function () {
+		var _totalY = this.props.data.length * NODE_SIZE;
+		return d3.scale.linear()
+			.domain([0, this.props.data.length])
+			.range([0, _totalY]);
+	},
+
+	_getCanvasY: function () {
+		return Math.max(0, this.state.canvasScrollY - CANVAS_SIZE / 2);
+	},
+
 	_renderCanvas: function () {
 		// get canvas context and clear
 		var ctx = this.refs.canvas.getDOMNode().getContext("2d");
@@ -76,7 +86,13 @@ module.exports = React.createClass({
 		var colorScale = d3.scale.linear()
 			.domain([0, 1])
 			.range(["blue", "white"]);
-		var chunkOfData = this.props.data.slice(0, 1000); // TEMP
+
+		// get data that fits into canvas
+		var _canvasY = this._getCanvasY();
+		var _nodesPerCanvas = Math.round(CANVAS_SIZE / NODE_SIZE)
+		var _dataStartIndex = Math.round(this._getYScale().invert(_canvasY));
+		var chunkOfData = this.props.data.slice(_dataStartIndex, _dataStartIndex + _nodesPerCanvas);
+
 		chunkOfData.forEach( (d, i) => {
 			d.variationData.forEach( (_d, _i) => {
 				// get color and draw rect
