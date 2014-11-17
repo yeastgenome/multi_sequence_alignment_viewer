@@ -9,14 +9,16 @@ var LABEL_WIDTH = 100;
 
 module.exports = React.createClass({
 	propTypes: {
-		data: React.PropTypes.array.isRequired
+		data: React.PropTypes.array.isRequired,
+		onClick: React.PropTypes.func
 	},
 
 	getInitialState: function () {
 		return {
 			DOMWidth: 400,
 			DOMHeight: 400,
-			canvasScrollY: 0
+			canvasScrollY: 0,
+			onClick: null
 		};
 	},
 
@@ -25,28 +27,31 @@ module.exports = React.createClass({
 		var _canvasY = this._getCanvasY();
 
 		var overlayNode = this._getOverlayNode();
-		return (<div className="variant-heatmap" style={{ position: "relative", height: _scrollZoneSize }}>
-			<canvas ref="canvas" width={this.state.DOMWidth} height={CANVAS_SIZE} style={{ position: "absolute", top: _canvasY }}/>
-			{overlayNode}
+		return (<div style={{ height: "100%", position: "relative"}}>
+			<div style={{ height: 100 }}></div>
+			<div ref="outerScroll" className="variant-heatmap" style={{ height: "100%", overflowY: "scroll", position: "relative" }}>
+				<div style={{ position: "relative", height: _scrollZoneSize }}>
+					<canvas ref="canvas" width={this.state.DOMWidth} height={CANVAS_SIZE} style={{ position: "absolute", top: _canvasY }}/>
+					{overlayNode}
+				</div>
+			</div>
 		</div>);
 	},
 
 	componentDidMount: function () {
 		this._calculateWidth();
-		window.onscroll = _.throttle(this.onScroll, 100);
-	},
-
-	onScroll: function () {
-		this._checkScroll();
+		this.refs.outerScroll.getDOMNode().onscroll = _.throttle(this._checkScroll, 100);
 	},
 
 	_getOverlayNode: function () {
 		var chunkedData = this._getChunkedData();
 		var rectNodes = _.map(chunkedData, (d, i) => {
+			var _onClick;
+			if (this.props.onClick) _onClick = (e) => { this.props.onClick(d); };
 			var _transform = `translate(0, ${i * NODE_SIZE})`;
 			return (<g key={"heatmapOverlay" + i} transform={_transform}>
 				<text dy={13} fontSize={14}>{d.name}</text>
-				<rect width={this.state.DOMWidth} height={NODE_SIZE} x={0} y={0} opacity={0} stroke="none" />
+				<rect width={this.state.DOMWidth} height={NODE_SIZE} x={0} y={0} opacity={0} stroke="none" onClick={_onClick}/>
 			</g>);
 		});
 
@@ -58,9 +63,10 @@ module.exports = React.createClass({
 
 	// check to see if the scroll y needs to be redrawn
 	_checkScroll: function () {
-		var scrollDelta = Math.abs(window.scrollY - this.state.canvasScrollY)
+		var scrollTop = this.refs.outerScroll.getDOMNode().scrollTop;
+		var scrollDelta = Math.abs(scrollTop - this.state.canvasScrollY)
 		if (scrollDelta > CANVAS_SIZE / 4) {
-			this.setState({ canvasScrollY: window.scrollY });
+			this.setState({ canvasScrollY: scrollTop });
 		}
 	},
 
