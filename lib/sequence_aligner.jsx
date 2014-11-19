@@ -6,7 +6,7 @@ var _ = require("underscore");
 var MultiScaleAxis = require("./multi_scale_axis.jsx");
 
 // TEMP vars
-var PX_PER_CHAR = 12;
+var PX_PER_CHAR = 9.25;
 var SUMMARIZED_SIZE = 50;
 var TICK_HEIGHT = 6;
 
@@ -105,10 +105,10 @@ module.exports = React.createClass({
 	},
 
 	_getYScale: function () {
-		var height = this.props.sequences.length * PX_PER_CHAR;
+		var height = (this.props.sequences.length + 1) * (PX_PER_CHAR + 3);
 		var names = _.map(this.props.sequences, s => { return s.name; });
 		return d3.scale.ordinal()
 			.domain(names)
-			.rangePoints([PX_PER_CHAR, height + PX_PER_CHAR]);
+			.rangePoints([PX_PER_CHAR + 3, height + PX_PER_CHAR]);
 	}
 });

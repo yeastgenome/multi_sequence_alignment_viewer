@@ -41,9 +41,18 @@ module.exports = React.createClass({
 
 	_getTickNodes: function () {
 		var scale = this.props.scale;
-		console.log(scale.domain())
-		var tickNodes = _.map(scale.domain(), (t, i) => {
-			var _transform = `translate(${scale(t)}, 15)`;
+
+		var tickData = _.reduce(this.props.segments, (memo, s) => {
+			if (s.domain[1] - s.domain[0] === 1) {
+				return memo;
+			} else {
+				memo.push(s.domain[1] + 1);
+				return memo;
+			}
+		}, [1]);
+		
+		var tickNodes = _.map(tickData, (t, i) => {
+			var _transform = `translate(${scale(t - 0.5)}, 15)`;
 			return (<g key={"tick" + i} transform={_transform}>
 				<text textAnchor="middle" >{t}</text>
 				<line x1="0" x2="0" y1="2" y2={TICK_HEIGHT + 2} />
