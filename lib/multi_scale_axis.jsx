@@ -11,7 +11,7 @@ var TICK_HEIGHT = 6;
 module.exports = React.createClass({
 	propTypes: {
 		segments: React.PropTypes.array.isRequired,
-		// scale: d3 scale required
+		scale: React.PropTypes.func.isRequired
 	},
 
 	render: function () {
@@ -41,6 +41,7 @@ module.exports = React.createClass({
 
 	_getTickNodes: function () {
 		var scale = this.props.scale;
+		console.log(scale.domain())
 		var tickNodes = _.map(scale.domain(), (t, i) => {
 			var _transform = `translate(${scale(t)}, 15)`;
 			return (<g key={"tick" + i} transform={_transform}>

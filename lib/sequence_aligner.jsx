@@ -7,7 +7,7 @@ var MultiScaleAxis = require("./multi_scale_axis.jsx");
 
 // TEMP vars
 var PX_PER_CHAR = 12;
-var SUMMARIZED_SIZE = 300;
+var SUMMARIZED_SIZE = 50;
 var TICK_HEIGHT = 6;
 
 module.exports = React.createClass({
@@ -19,7 +19,7 @@ module.exports = React.createClass({
 
 	render: function () {
 		var segmentNodes = this._getSegmentNodes();
-		var visibleSequenceNodes = this._getVisibleSequenceNodes();
+		var visibleSequenceNodes = this._getVisibleSegmentNodes();
 
 		return (<div>
 			<MultiScaleAxis segments={this.props.segments} scale={this._getXScale()} />
@@ -43,36 +43,40 @@ module.exports = React.createClass({
 		});
 	},
 
-	_getSummarizedSegmentNode: function (startCoordinate, endCoordinate, key) {
+	_getVisibleSequenceNodes: function (seg, i) {
 		var xScale = this._getXScale();
-		return (<g className="summarized-segment" key={key}>
-			<line x1={xScale(startCoordinate)} x2={xScale(endCoordinate)} y1="0" y2="0" stroke="#efefef" />
-			<line x1={xScale(startCoordinate)} x2={xScale(endCoordinate)} y1="15" y2="15" stroke="#efefef" />
-		</g>);
+		var yScale = this._getYScale();
+		return _.map(this.props.sequences, (seq, _i) => {
+			var _seqText = seq.sequence.slice(seg.domain[0], seg.domain[1])
+			var _transform = `translate(${xScale(seg.domain[0])}, ${yScale(seq.name)})`;
+			return <text key={"variantSeqNode" + i + _i} transform={_transform} fontFamily="Courier">{_seqText}</text>;
+		});
 	},
 
-	_getVisibleSequenceNodes: function () {
+	_getSummarizedSegmentNode: function (startCoordinate, endCoordinate, key) {
 		var xScale = this._getXScale();
 		var yScale = this._getYScale();
 
-		return _.reduce(this.props.sequences, (memo, seq, j) => {
-			var _seqSegs = _.map(this.props.segments, (seg, k) => {
-				if (seg.visible) {
-					var _seqText = seq.sequence.slice(seg.domain[0], seg.domain[1])
-					var _transform = `translate(${xScale(seg.domain[0])}, ${yScale(seq.name)})`;
-					return <text key={"variantSeqNode" + j + k} transform={_transform} fontFamily="Courier">{_seqText}</text>;
-				} else {
-					return this._getSummarizedSegmentNode(seg.domain[0], seg.domain[1], "summarizedSequence" + j + k);
-				}
-			});
-			return memo.concat(_seqSegs);
+		var _yTranslate = (yScale.rangeExtent()[1] - yScale.rangeExtent()[0]) / 2;
+		var _transform = `translate(0, ${_yTranslate})`;
+		// return (<g className="summarized-segment" key={key} transform={_transform}>
+		// 	<line x1={xScale(startCoordinate)} x2={xScale(endCoordinate)} y1="0" y2="0" stroke="#efefef" style={{ shapeRendering: "crispEdges" }}/>
+		// 	<line x1={xScale(startCoordinate)} x2={xScale(endCoordinate)} y1="15" y2="15" stroke="#efefef" style={{ shapeRendering: "crispEdges" }}/>
+		// </g>);
+		return (<g className="summarized-segment" key={key} transform={_transform}>
+
+		</g>);
+	},
+
+	_getVisibleSegmentNodes: function () {
+		return _.reduce(this.props.segments, (memo, seg, i) => {
+			if (seg.visible) {
+				memo = memo.concat(this._getVisibleSequenceNodes(seg, i));
+			} else {
+				memo.push(this._getSummarizedSegmentNode(seg.domain[0], seg.domain[1], "summarizedSequence" + i));
+			}
+			return memo;
 		}, []);
-
-		// make array of nodes for visible segments
-
-		// make array of nodes for summarized segments
-
-		// return the combind arrays
 	},
 
 	// returns a d3 scale which has multiple linear scale segments corresponding to segments prop
@@ -102,9 +106,9 @@ module.exports = React.createClass({
 
 	_getYScale: function () {
 		var height = this.props.sequences.length * PX_PER_CHAR;
-		var names = _.map(this.props.sequence, s => { return s.name; });
+		var names = _.map(this.props.sequences, s => { return s.name; });
 		return d3.scale.ordinal()
 			.domain(names)
-			.range([PX_PER_CHAR, height + PX_PER_CHAR]);
+			.rangePoints([PX_PER_CHAR, height + PX_PER_CHAR]);
 	}
 });
