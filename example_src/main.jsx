@@ -35,14 +35,15 @@ var exampleData = {
 	]
 };
 
-// FAKE DATA
+// TEMP
+// FAKE HEATMAP DATA
 var heatpmapData = [];
 var _numGenes = 6400;
-var _numCols = 11;
+var numStrains = 11;
 
 for (var j = 0; j <= _numGenes; j++) {
 	var _variantData = [];
-	for (var k = _numCols; k >= 0; k--) {
+	for (var k = numStrains; k >= 0; k--) {
 		_variantData.push(Math.random());
 	}
 	heatpmapData.push({
@@ -50,6 +51,17 @@ for (var j = 0; j <= _numGenes; j++) {
 		variationData: _variantData
 	});
 }
+// strain data for heatmap, also FAKE
+var _strainMetaData = [];
+for (var i = numStrains; i >= 0; i--) {
+	_strainMetaData.push ({
+		name: "Strain" + i
+	});
+};
+_strainMetaData = _strainMetaData.reverse();
 
-React.render(<VariantHeatmap data={heatpmapData} />, document.getElementById("target"));
+React.render(<VariantHeatmap
+		data={heatpmapData}
+		strainData={_strainMetaData}
+	/>, document.getElementById("target"));
 // React.render(<SequenceAligner segments={exampleData.segments} sequences={exampleData.sequences}/>, document.getElementById("target"));

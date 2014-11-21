@@ -3,20 +3,24 @@ var d3 = require("d3");
 var React = require("react");
 var _ = require("underscore");
 
-var NODE_SIZE = 15;
+var DEFAULT_DOM_SIDE_SIZE = 400; // height and width\
+var FONT_SIZE = 14;
+var HEADER_HEIGHT = 60;
+var NODE_SIZE = 16;
 var CANVAS_SIZE = 8000;
 var LABEL_WIDTH = 100;
 
 module.exports = React.createClass({
 	propTypes: {
 		data: React.PropTypes.array.isRequired,
-		onClick: React.PropTypes.func
+		onClick: React.PropTypes.func,
+		strainData: React.PropTypes.array.isRequired
 	},
 
 	getInitialState: function () {
 		return {
-			DOMWidth: 400,
-			DOMHeight: 400,
+			DOMWidth: DEFAULT_DOM_SIDE_SIZE,
+			DOMHeight: DEFAULT_DOM_SIDE_SIZE,
 			canvasScrollY: 0,
 			onClick: null
 		};
@@ -26,14 +30,19 @@ module.exports = React.createClass({
 		var _scrollZoneSize = this.props.data.length * NODE_SIZE;
 		var _canvasY = this._getCanvasY();
 
+		var strainLabelsNode = this._getLabelsNode();
 		var overlayNode = this._getOverlayNode();
-		return (<div style={{ height: "100%", position: "relative"}}>
-			<div style={{ height: 100 }}></div>
-			<div ref="outerScroll" className="variant-heatmap" style={{ height: "100%", overflowY: "scroll", position: "relative" }}>
+
+		return (
+		<div className="variant-heatmap" style={{ height: "100%", position: "relative"}}>
+			<div className="heatmap-header" style={{ height: HEADER_HEIGHT }}>
+				{strainLabelsNode}
+			</div>
+			<div ref="outerScroll" style={{ height: "100%", overflowY: "scroll", position: "relative" }}>
 				<div style={{ position: "relative", height: _scrollZoneSize }}>
 					<canvas ref="canvas" width={this.state.DOMWidth} height={CANVAS_SIZE} style={{ position: "absolute", top: _canvasY }}/>
-					{overlayNode}
 				</div>
+				{overlayNode}
 			</div>
 		</div>);
 	},
@@ -50,7 +59,7 @@ module.exports = React.createClass({
 			if (this.props.onClick) _onClick = (e) => { this.props.onClick(d); };
 			var _transform = `translate(0, ${i * NODE_SIZE})`;
 			return (<g key={"heatmapOverlay" + i} transform={_transform}>
-				<text dy={13} fontSize={14}>{d.name}</text>
+				<text dy={13} fontSize={FONT_SIZE}>{d.name}</text>
 				<rect width={this.state.DOMWidth} height={NODE_SIZE} x={0} y={0} opacity={0} stroke="none" onClick={_onClick}/>
 			</g>);
 		});
@@ -87,6 +96,24 @@ module.exports = React.createClass({
 		var _nodesPerCanvas = Math.round(CANVAS_SIZE / NODE_SIZE)
 		var _dataStartIndex = Math.round(this._getYScale().invert(_canvasY));
 		return this.props.data.slice(_dataStartIndex, _dataStartIndex + _nodesPerCanvas);
+	},
+
+	_getLabelsNode: function () {
+		var xScale = this._getXScale();
+		var nodes = this.props.strainData.map( (d, i) => {
+			var _style = {
+				position: "absolute",
+				left: Math.max(0, (i - 1) * NODE_SIZE + LABEL_WIDTH),
+				top: HEADER_HEIGHT / 2,
+				fontSize: FONT_SIZE,
+				transform: "rotate(-90deg)"
+			};
+			return <span key={"strainLabel" + i} style={_style}>{d.name}</span>;
+		});
+
+		return (<div style={{ position: "relative" }}>
+			{nodes}
+		</div>);
 	},
 
 	_getXScale: function () {
